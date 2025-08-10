@@ -39,14 +39,14 @@ Function.prototype.constructor = new Proxy(Function.prototype.constructor, {
 </details>
 
 4. Resume script execution by pressing F8, or by pressing Ctrl+Shift+P and typing "Resume script execution" then pressing enter.
-5. Press Ctrl+P and paste `main.e1beb6272284d6dce88c.js:1:26311` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
+5. Press Ctrl+P and paste `main.e1beb6272284d6dce88c.js:1:26310` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
 6. Set a breakpoint by clicking the left part of the sidebar in on the same line as the current text cursor position.
 7. Close Farm Merge Valley.
 
 ### Load the cheat
 
-8. Open Farm Merge Valley and make sure the developer tools are still open because they need to be active as soon as the game begins loading.
-9. When the game starts loading, it will pause again on a debugger trap, follow steps **3-4** in order to bypass the debugger trap. After you complete step 4, the debugger should break again, this time on the breakpoint that you previously set in step **6**. Now, copy the code below and paste it into the console:
+8. Open Farm Merge Valley and make sure the developer tools are still open because they need to be active as soon as the game begins loading (the game screen will be black until you finish loading the cheat - this is normal).
+9. When the game starts loading, it will pause again on a debugger trap, follow both steps **3 and 4** again in order to bypass the debugger trap. After you've followed those steps again, the debugger should break again, this time on the breakpoint that you previously set in step **6**. Now, copy the code below and paste it into the console:
 
 <details>
 

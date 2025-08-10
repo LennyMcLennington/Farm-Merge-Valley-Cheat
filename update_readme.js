@@ -119,7 +119,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
 
   for (const m of mainFileFunctions) {
     const functionName = m[1];
-    const offset = m.index + 1;
+    const offset = m.index;
     if (m[0].includes("'exports':{}")) {
       const lines = jsFileContents[mainFileName].slice(0, offset).split("\n");
       const lineNumber = lines.length;
