@@ -1,0 +1,15 @@
+{
+  "name": "farmmergevalleycheat",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "update_readme.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lenny McLennington",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
