@@ -227,9 +227,9 @@ class Cheat {
   }
 
   giveInventoryItem(target, amount) {
-    // This works for level but it's better to use setLevel because it includes proper animation.
+    // The generic method works for level but it's better to use addLevels because it includes proper animation.
     if (target === "level") {
-      return this.setLevel(amount);
+      return this.addLevels(amount);
     }
 
     // fallback to non-animated version since the animation (giveInventoryReward) doesn't work for negative or zero
