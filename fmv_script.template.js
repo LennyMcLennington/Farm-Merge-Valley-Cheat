@@ -2,9 +2,9 @@
 // SPDX-FileContributor: Lenny McLennington <lenny@sneed.church>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-function firstValue(obj) {
+const firstValue = (obj) => {
   return Object.values(obj)[0];
-}
+};
 
 class Cheat {
   initialised = false;
@@ -15,6 +15,9 @@ class Cheat {
   gameplayMapScreen = null;
 
   mergeSystem = null;
+  rewardSystem = null;
+  upgradeCardSystem = null;
+  rankBar = null;
 
   // module importing stuff
   fmvImport = null;
@@ -175,13 +178,17 @@ class Cheat {
   }
 }
 
-const CheatAutoInit = new Proxy(Cheat, {
+let CheatAutoInit = new Proxy(Cheat, {
   construct(target, args) {
     const instance = new target(...args);
     const proxiedInstance = new Proxy(instance, {
       get: (target, prop) => {
         const orig = target[prop];
-        if (typeof orig === "function" && prop !== "init") {
+        if (
+          typeof orig === "function" &&
+          prop !== "init" &&
+          prop !== "fmvImport"
+        ) {
           return (...arguments) => {
             target.init();
             return orig.apply(target, arguments);
@@ -198,10 +205,22 @@ const CheatAutoInit = new Proxy(Cheat, {
 });
 
 const fmvImport =
-  window.cheat === undefined
-    ? __importerFunctionName__
-    : window.cheat.fmvImport;
+  (() => {
+    let fmvImport = undefined;
+    try {
+      fmvImport = __importerFunctionName__;
+    } catch (e) {}
+    return fmvImport;
+  })() || window.cheat?.fmvImport;
 
-const cheat = new CheatAutoInit(fmvImport, __gameSingleton__, __behaviors__);
-
-window.cheat = cheat;
+if (!fmvImport) {
+  console.warn(
+    "No fmvImport function found. Please ensure you are following the instructions correctly.",
+  );
+} else {
+  window.cheat = new CheatAutoInit(
+    __importerFunctionName__,
+    __gameSingleton__,
+    __behaviors__,
+  );
+}

@@ -6,6 +6,12 @@ import fetch from "node-fetch";
 import fs from "fs/promises";
 import { createHash } from "crypto";
 
+function getLineAndColFromIndex(text, index) {
+  const lines = text.slice(0, index).split("\n");
+
+  return [lines.length, lines[lines.length - 1].length];
+}
+
 function balancedBracesPattern(n) {
   let pattern = "[^{}]";
 
@@ -101,8 +107,7 @@ main().catch(console.error);
 async function findFoundModules(indexHtml, baseUrl, foundModules) {
   const jsFiles = [...indexHtml.matchAll(/src="([^"]+)"/g)]
     .map((m) => m[1])
-    .filter((src) => !src.startsWith("https"))
-    .sort();
+    .filter((src) => src.startsWith("game.") || src.startsWith("main."));
 
   // Fetch each JS file content
   const jsFileContents = {};
@@ -117,32 +122,47 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
     `function ([A-Za-z_][A-Za-z0-9]*)\\([A-Za-z_][A-Za-z0-9]*\\)${balancedBracesPattern(15)}`,
   );
 
-  for (const m of mainFileFunctions) {
-    const functionName = m[1];
-    const offset = m.index;
-    if (m[0].includes("'exports':{}")) {
-      const lines = jsFileContents[mainFileName].slice(0, offset).split("\n");
-      const lineNumber = lines.length;
-      const columnNumber = lines[lines.length - 1].length;
-      foundModules["importerFunctionName"] = functionName;
-      foundModules["importerOffset"] =
-        `${mainFileName}:${lineNumber}:${columnNumber}`;
-      break;
-    }
-  }
-
   // Extract module IDs from all JS files, uniq sorted
   const moduleIdSet = new Set();
-  for (const content of Object.values(jsFileContents)) {
+  let firstFoundImport = null;
+
+  for (const fileName of jsFiles) {
+    const content = jsFileContents[fileName];
     // grep -Po '(?<=_0x[A-Za-z0-9]{6}\[\'[^\']{1,10}\'\]\(_0x[A-Za-z0-9]{6},)0x[A-Za-z0-9]{2,6}(?=\))'
     // => lookbehind for _0xXXXXXX['...'](_0xXXXXXX, then a hex id like 0xXXXXXX
     const regex =
-      /(?<=_0x[A-Za-z0-9]{6}\['[^']{1,10}'\]\(_0x[A-Za-z0-9]{6},)0x[A-Za-z0-9]{2,6}(?=\))/g;
+      /(?:var |,)_0x[A-Za-z0-9]{6}=(?:(_0x[A-Za-z0-9]{6})(?:\(|\['[^']{1,10}'\]\((_0x[A-Za-z0-9]{6}),))(0x[A-Za-z0-9]{2,6})(?=\))/g;
     for (const m of content.matchAll(regex)) {
-      moduleIdSet.add(m[0]);
+      const moduleId = m[3];
+      const importer = m[2] ?? m[1];
+      if (
+        firstFoundImport === null &&
+        !m[0].includes('"') &&
+        !m[0].includes("'") &&
+        importer
+      ) {
+        const [lineNumber, columnNumber] = getLineAndColFromIndex(
+          content,
+          m.index,
+        );
+
+        firstFoundImport = {
+          importer,
+          offset: `${fileName}:${lineNumber}:${columnNumber}`,
+        };
+      }
+      moduleIdSet.add(moduleId);
     }
   }
   const moduleIds = [...moduleIdSet].sort();
+
+  if (!firstFoundImport) {
+    console.warn("No module imports found in main script.");
+    process.exit(1);
+  }
+
+  foundModules["importerFunctionName"] = firstFoundImport.importer;
+  foundModules["importerOffset"] = firstFoundImport.offset;
 
   // For each module id, find matching object literal in js files
   // pattern: (?<=(?:$module_id|$dec):)\([A-Za-z_][A-Za-z0-9_]*,[A-Za-z_][A-Za-z0-9_]*,[A-Za-z_][A-Za-z0-9_]*\)=>(\{(?:[^{}]|(?1))*\})
@@ -157,7 +177,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
     // e.g. look for `${moduleId}:([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*)=>({ ... })`
     // We capture from => to matching braces using a balancing approach is tough in JS regex; approximate with a lazy match.
     const pattern = new RegExp(
-      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(15)})`,
+      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(10)})`,
       "m",
     );
 
@@ -175,6 +195,24 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
 
         break;
       }
+
+      if (
+        Object.keys(wantModules).every((x) => foundModules[x] !== undefined)
+      ) {
+        console.log(
+          `Found all required modules: ${Object.keys(wantModules).join(", ")}`,
+        );
+        return;
+      }
     }
+  }
+
+  if (Object.keys(wantModules).some((x) => foundModules[x] === undefined)) {
+    console.warn(
+      `Not all required modules found: ${Object.keys(wantModules)
+        .filter((x) => foundModules[x] === undefined)
+        .join(", ")}`,
+    );
+    process.exit(1);
   }
 }

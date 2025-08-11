@@ -13,22 +13,21 @@ This software is licensed under GNU Affero General Public License, version 3
 ## Method to initialise the cheat
 
 <details>
+Steps 2-4 ("Set up the injection point") only need to be done once every time the game updates. If you have already set up the breakpoint, you can just initialise the cheat by doing step 1 then skipping to steps 5 and onward.
 
-Steps 1-5 only need to be done once every time the game updates. If you have already set up the breakpoint then you can just initialise the cheat from step 8.
+### Open the game
+
+1. Press F12 or Ctrl+Shift+I to open the Developer Tools, then open Farm Merge Valley. The game will be black because its code is paused as soon as it begins to load. This is normal and expected, it will be black until you've finished loading the cheat. **TIP:** If you press **Esc** while the developer tools are focused, it will toggle the console panel, which is useful for quick access to write code in the console without needing to click back and forth to the console tab.
 
 ### Set up the injection point
 
-1. Open Farm Merge Valley. Wait for it to get to the loading screen (it doesn't need to finish loading).
-2. Open the console in your browser (**F12** or **Ctrl+Shift+I**). The game will pause on a debugger trap.
+2. Make sure the developer tools are focused, and press **Ctrl+Shift+P** and type in `Disable JavaScript source maps` and press enter to disable source maps, this is required because source maps interfere with the method of injecting the cheat. If it doesn't show up, that means source maps are already disabled so don't worry.
 3. Press **Ctrl+P** and paste `__importerOffset__` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
-4. Set a breakpoint by clicking the left part of the sidebar in on the same line as the current text cursor position.
-5. Close Farm Merge Valley.
+4. Set a breakpoint on that line by clicking the left part of the sidebar in on the same line as the current text cursor position.
 
 ### Load the cheat
 
-6. Open Farm Merge Valley and make sure the developer tools are still open because they need to be active as soon as the game begins loading (the game screen will be black until you finish loading the cheat - this is normal).
-7. When the game starts loading, it will pause again on a debugger trap. In order to bypass it, copy the code below and paste it into the console.
-
+5. The game will be paused on a debugger trap. In order to bypass it, copy the code below and paste it into the console, then press enter:
 <details>
 
 ```js
@@ -45,8 +44,8 @@ Function.prototype.constructor = new Proxy(Function.prototype.constructor, {
 
 </details>
 
-8. Resume script execution by pressing F8, or by pressing **Ctrl+Shift+P** and typing "Resume script execution" then pressing enter.
-9. After you've resumed script execution, the debugger should break again. This time it will be on the breakpoint that you previously set in step **4**. Now, copy the code below and paste it into the console:
+6. Resume script execution by pressing F8, or by pressing **Ctrl+Shift+P** and typing "Resume script execution" then pressing enter.
+7. After you've resumed script execution, the debugger should break again. This time it will be on the breakpoint that you previously set in step **3**. Now, copy the code below and paste it into the console, then press enter:
 
 <details>
 
@@ -56,8 +55,19 @@ Function.prototype.constructor = new Proxy(Function.prototype.constructor, {
 
 </details>
 
-10. If you get an error like `Uncaught ReferenceError: _0x28bd45 is not defined`, try repeating steps **7, 8, and 9** in sequence.
-11. Now you can just repeat step **8** to resume the execution of the game. Wait for the game to load before using the cheat functionality.
+8. Now you can just repeat step **6** to fully resume the execution of the game.
+
+</details>
+
+## Troubleshooting
+
+<details>
+
+### Uncaught ReferenceError: cheat is not defined
+
+This would happen if you close the developer tools and re-open them, meaning the execution context gets reset to "top". In order to go back to the Farm Merge Valley execution context, click the dropdown which would now say "top", and find where it says "https://1187013846746005515.discordsays.com/", and select that.
+
+![Execution context example](./assets/execution_context_example.png)
 
 </details>
 
