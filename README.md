@@ -14,13 +14,20 @@ This software is licensed under GNU Affero General Public License, version 3
 
 <details>
 
-Steps 1-7 only need to be done once every time the game updates. If you have already set up the breakpoint then you can just initialise the cheat from step 8.
+Steps 1-5 only need to be done once every time the game updates. If you have already set up the breakpoint then you can just initialise the cheat from step 8.
 
 ### Set up the injection point
 
-1. Open Farm Merge Valley.
-2. Open the console in your browser (F12 or Ctrl+Shift+I). The game will pause on a debugger trap.
-3. Copy the code below and paste it into the console.
+1. Open Farm Merge Valley. Wait for it to get to the loading screen (it doesn't need to finish loading).
+2. Open the console in your browser (**F12** or **Ctrl+Shift+I**). The game will pause on a debugger trap.
+3. Press **Ctrl+P** and paste `main.e1beb6272284d6dce88c.js:1:26310` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
+4. Set a breakpoint by clicking the left part of the sidebar in on the same line as the current text cursor position.
+5. Close Farm Merge Valley.
+
+### Load the cheat
+
+6. Open Farm Merge Valley and make sure the developer tools are still open because they need to be active as soon as the game begins loading (the game screen will be black until you finish loading the cheat - this is normal).
+7. When the game starts loading, it will pause again on a debugger trap. In order to bypass it, copy the code below and paste it into the console.
 
 <details>
 
@@ -38,15 +45,8 @@ Function.prototype.constructor = new Proxy(Function.prototype.constructor, {
 
 </details>
 
-4. Resume script execution by pressing F8, or by pressing Ctrl+Shift+P and typing "Resume script execution" then pressing enter.
-5. Press Ctrl+P and paste `main.e1beb6272284d6dce88c.js:1:26310` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
-6. Set a breakpoint by clicking the left part of the sidebar in on the same line as the current text cursor position.
-7. Close Farm Merge Valley.
-
-### Load the cheat
-
-8. Open Farm Merge Valley and make sure the developer tools are still open because they need to be active as soon as the game begins loading (the game screen will be black until you finish loading the cheat - this is normal).
-9. When the game starts loading, it will pause again on a debugger trap, follow both steps **3 and 4** again in order to bypass the debugger trap. After you've followed those steps again, the debugger should break again, this time on the breakpoint that you previously set in step **6**. Now, copy the code below and paste it into the console:
+8. Resume script execution by pressing F8, or by pressing **Ctrl+Shift+P** and typing "Resume script execution" then pressing enter.
+9. After you've resumed script execution, the debugger should break again. This time it will be on the breakpoint that you previously set in step **4**. Now, copy the code below and paste it into the console:
 
 <details>
 
@@ -263,7 +263,8 @@ window.cheat = cheat;
 
 </details>
 
-10. Now you can just repeat step **4** to resume the script execution. Wait for the game to load before using the cheat functionality.
+10. If you get an error like `Uncaught ReferenceError: _0x28bd45 is not defined`, try repeating steps **7, 8, and 9** in sequence.
+11. Now you can just repeat step **8** to resume the execution of the game. Wait for the game to load before using the cheat functionality.
 
 </details>
 
