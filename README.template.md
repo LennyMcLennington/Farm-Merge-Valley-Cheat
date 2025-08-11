@@ -143,6 +143,12 @@ You can give yourself a specific amount of items to your inventory. For example,
 cheat.giveInventoryItem("wheat", 100);
 ```
 
+You can also use setInventoryAmount to set the amount of an item in your inventory to a specific value rather than adding to the existing amount:
+
+```js
+cheat.setInventoryAmount("wheat", 100);
+```
+
 A full list of inventory items is available by running
 
 ```js

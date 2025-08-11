@@ -42,7 +42,17 @@ class Cheat {
     if (this.initialised) return;
 
     this.game = firstValue(this.fmvImport(this.gameSingletonId));
+    if (!this.game) {
+      throw new Error(
+        "Game singleton not found. Please ensure you are using an up-to-date version of the script, and following the instructions.",
+      );
+    }
     this.behaviors = firstValue(this.fmvImport(this.behaviorsId));
+    if (!this.behaviors) {
+      throw new Error(
+        "Behaviors module not found. Please ensure you are using an up-to-date version of the script, and following the instructions.",
+      );
+    }
 
     this.gameplayMapScreen = this.game.services.canvas.stage.getChildByName(
       "GameplayMapScreen",
@@ -103,11 +113,16 @@ class Cheat {
     return object;
   }
 
-  giveInventoryItem(target, amount) {
-    return this.worldServices.rewardService.giveInventoryReward({
-      reward: { key: target, amount: amount },
-      parent: this.gameplayMapScreen,
-    });
+  spawnUpgradeCard(target, tier) {
+    if (!(1 <= tier && tier <= 3)) return;
+
+    const object = this.spawnAtClosestEmptyToCenter(`upgrade_card_${tier}`);
+    const behavior = object.getBehavior("upgradeCard");
+    this.upgradeCardSystem._updateUpgradeCardObject(object, behavior, target);
+
+    this.worldServices.world.addGameObject(object);
+
+    return object;
   }
 
   // 100 = always lucky merge, 0 = never lucky merge, default is 5
@@ -142,18 +157,6 @@ class Cheat {
       .forEach((x) => worldServices.world.removeGameObject(x));
   }
 
-  spawnUpgradeCard(target, tier) {
-    if (!(1 <= tier && tier <= 3)) return;
-
-    const object = this.spawnAtClosestEmptyToCenter(`upgrade_card_${tier}`);
-    const behavior = object.getBehavior("upgradeCard");
-    this.upgradeCardSystem._updateUpgradeCardObject(object, behavior, target);
-
-    this.worldServices.world.addGameObject(object);
-
-    return object;
-  }
-
   findBlueprintsWithBehaviour(behaviour) {
     return Array.from(this.backendServices.blueprintCollection._blueprints)
       .map((x) => x[1])
@@ -169,6 +172,31 @@ class Cheat {
           !x.id.startsWith("base_"),
       )
       .map((x) => x.id);
+  }
+
+  giveInventoryItem(target, amount) {
+    // This works for level but it's better to use setLevel because it includes proper animation.
+    if (target === "level") {
+      return this.setLevel(amount);
+    }
+
+    // fallback to non-animated version since the animation (giveInventoryReward) doesn't work for negative or zero
+    if (amount < 1) {
+      return this._setInventoryAmountDelta(target, amount);
+    }
+
+    return this.worldServices.rewardService.giveInventoryReward({
+      reward: { key: target, amount: amount },
+      parent: this.gameplayMapScreen,
+    });
+  }
+
+  setInventoryAmount(target, amount) {
+    this.backendServices.inventory.setAmount(target, amount);
+  }
+
+  _setInventoryAmountDelta(target, delta) {
+    this.backendServices.inventory.addAmount(target, delta);
   }
 
   getValidItemTypes() {
