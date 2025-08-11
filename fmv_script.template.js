@@ -246,9 +246,5 @@ if (!fmvImport) {
     "No fmvImport function found. Please ensure you are following the instructions correctly.",
   );
 } else {
-  window.cheat = new CheatAutoInit(
-    __importerFunctionName__,
-    __gameSingleton__,
-    __behaviors__,
-  );
+  window.cheat = new CheatAutoInit(fmvImport, __gameSingleton__, __behaviors__);
 }

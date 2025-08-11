@@ -298,11 +298,7 @@ if (!fmvImport) {
     "No fmvImport function found. Please ensure you are following the instructions correctly.",
   );
 } else {
-  window.cheat = new CheatAutoInit(
-    _0x5785f1,
-    0x11688,
-    0x130f5,
-  );
+  window.cheat = new CheatAutoInit(fmvImport, 0x11688, 0x130f5);
 }
 
 ```
