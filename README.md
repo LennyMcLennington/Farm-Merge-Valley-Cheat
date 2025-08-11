@@ -341,13 +341,52 @@ You can spawn an object in a bubble by doing:
 cheat.spawnBubbledObject("gem_1");
 ```
 
+### Spawn an upgrade card
+
+You can spawn an upgrade card for a specific upgrade type, e.g. "wheat", "cow", etc.
+
+A full list of upgrade types will be provided in a future update.
+
+For example, to spawn a level 2 wheat upgrade card, you would do:
+
+```js
+cheat.spawnUpgradeCard("wheat", 2);
+```
+
+### Delete obstacles
+
+You can delete all obstacles from the entire map by doing:
+
+```js
+cheat.deleteObstacles();
+```
+
+### Give inventory items
+
+You can give yourself a specific amount of items to your inventory. For example, if you want to give yourself 100 additional wheat, you would do:
+
+```js
+cheat.giveInventoryItem("wheat", 100);
+```
+
+A full list of inventory items is available by running
+
+```js
+cheat.getValidItemTypes();
+```
+
+### Set lucky merge chance
+
+You can set the lucky merge chance to a specific value, e.g. 50 for 50% chance (the default chance is 5):
+
+```js
+cheat.setLuckyMergeChance(50);
+```
+
+If you set it to 100 then 100% of merges will be lucky merges.
+
 ### TODO
 
 These still need to be documented
 
 - spawnCollectable
-- giveInventoryItem
-- setLuckyMergeChance
-- deleteObstacles
-- spawnUpgradeCard
-- getValidItemTypes
