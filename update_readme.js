@@ -29,7 +29,8 @@ function isBehaviorsModule(moduleText) {
 }
 
 const gameSingletonModuleRegexp =
-  /\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{const [A-Za-z_][A-Za-z0-9]*=\{'[^']*':(?:function)?\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\).+?\},[A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);(?:const|let|var)? [A-Za-z_][A-Za-z0-9]*=new\([A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,0x[0-9A-Fa-f]+\)\)\['[^']*'\]\(\);\}/;
+  /\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{const (?:[A-Za-z_][A-Za-z0-9]*=\{'[^']*':(?:function)?\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\).+?\},)?[A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);(?:const|let|var)? [A-Za-z_][A-Za-z0-9]*=new\([A-Za-z_][A-Za-z0-9]*(?:\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*|\()0x[0-9A-Fa-f]+\)\)\['[^']*'\]\(\);\}/;
+
 function isGameSingletonModule(moduleText) {
   return moduleText.match(gameSingletonModuleRegexp) != null;
 }
@@ -169,7 +170,12 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
   // We replace printf '%d' "$module_id" => decimal of hex id
   const moduleMap = {};
 
+  let count = 0;
   for (const moduleId of moduleIds) {
+    count += 1;
+    if (count == 103) {
+      console.log(`Checking module ${count}/${moduleIds.length} (${moduleId})`);
+    }
     const dec = Number(moduleId).toString(10);
     const lookbehind = `(?:${moduleId}|${dec}):`;
     // The tricky pattern to match arrow function with 3 params and returning an object literal
@@ -177,7 +183,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
     // e.g. look for `${moduleId}:([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*)=>({ ... })`
     // We capture from => to matching braces using a balancing approach is tough in JS regex; approximate with a lazy match.
     const pattern = new RegExp(
-      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(10)})`,
+      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(30)})`,
       "m",
     );
 
