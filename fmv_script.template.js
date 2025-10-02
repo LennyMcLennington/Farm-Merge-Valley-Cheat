@@ -146,7 +146,7 @@ class Cheat {
   }
 
   deleteObstacles() {
-    worldServices.world
+    this.worldServices.world
       .getAllGameObjects()
       .filter(
         (x) =>
@@ -154,7 +154,7 @@ class Cheat {
           !x.hasBehavior("shovelable") &&
           !x.hasBehavior("movable"),
       )
-      .forEach((x) => worldServices.world.removeGameObject(x));
+      .forEach((x) => this.worldServices.world.removeGameObject(x));
   }
 
   findBlueprintsWithBehaviour(behaviour) {
