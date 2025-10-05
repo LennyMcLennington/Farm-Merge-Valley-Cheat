@@ -29,7 +29,7 @@ function isBehaviorsModule(moduleText) {
 }
 
 const gameSingletonModuleRegexp =
-  /\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{const (?:[A-Za-z_][A-Za-z0-9]*=\{'[^']*':(?:function)?\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\).+?\},)?[A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);(?:const|let|var)? [A-Za-z_][A-Za-z0-9]*=new\([A-Za-z_][A-Za-z0-9]*(?:\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*|\()0x[0-9A-Fa-f]+\)\)\['[^']*'\]\(\);\}/;
+  /\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{(const|let|var) (?:[A-Za-z_][A-Za-z0-9]*=\{'[^']*':(?:function)?\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\).+?\},)?[A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);(?:const|let|var)? [A-Za-z_][A-Za-z0-9]*=new\([A-Za-z_][A-Za-z0-9]*(?:\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,?|\()0x[0-9A-Fa-f]+\)\)\['[^']*'\]\(\);\}/;
 
 function isGameSingletonModule(moduleText) {
   return moduleText.match(gameSingletonModuleRegexp) != null;
