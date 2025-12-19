@@ -22,7 +22,7 @@ Steps 2-4 ("Set up the injection point") only need to be done once every time th
 ### Set up the injection point
 
 2. Make sure the developer tools are focused, and press **Ctrl+Shift+P** and type in `Disable JavaScript source maps` and press enter to disable source maps, this is required because source maps interfere with the method of injecting the cheat. If it doesn't show up, that means source maps are already disabled so don't worry.
-3. Press **Ctrl+P** and paste `game.g.e9b95ea287c611ff6737.js:1:101737` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
+3. Press **Ctrl+P** and paste `game.g.6c5ace7d2561297dba08.js:1:43` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
 4. Set a breakpoint on that line by clicking the left part of the sidebar in on the same line as the current text cursor position.
 
 ### Load the cheat
@@ -288,7 +288,7 @@ const fmvImport =
   (() => {
     let fmvImport = undefined;
     try {
-      fmvImport = _0x4e6025;
+      fmvImport = t;
     } catch (e) {}
     return fmvImport;
   })() || window.cheat?.fmvImport;
@@ -298,7 +298,7 @@ if (!fmvImport) {
     "No fmvImport function found. Please ensure you are following the instructions correctly.",
   );
 } else {
-  window.cheat = new CheatAutoInit(fmvImport, 0x11688, 0x130f5);
+  window.cheat = new CheatAutoInit(fmvImport, 71304, 78069);
 }
 
 ```
