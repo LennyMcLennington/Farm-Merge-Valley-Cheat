@@ -203,7 +203,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
           ) {
             const [lineNumber, columnNumber] = getLineAndColFromIndex(
               content,
-              m.index
+              m.index + module.index + 1
             );
 
             firstFoundImport = {
