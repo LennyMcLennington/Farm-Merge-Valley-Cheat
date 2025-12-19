@@ -22,14 +22,36 @@ function balancedBracesPattern(n) {
   return pattern;
 }
 
+const number = "(?:0x[0-9A-Fa-f]+|\\d+)";
+const identifier = "(?:[$A-Za-z_][$A-Za-z0-9_]*)";
+const declIntroducer = `(?:(?:const|let|var)\\s+)`;
+
+// (e,t,i)=>{i.d(t,{H:()=>o});const o={}}
+const behaviorsModulePattern = `^\\(${identifier},${identifier},(?<importer>${identifier})\\)=>\\{`
++ `(?:\\k<importer>\\.${identifier}\\(.+\\);const ${identifier}={}|` // newest
++ `const ${identifier}=\\{\\};${identifier}\\['[^']*'\\]=\\(\\)=>${identifier},${identifier}\\['[^']*'\\]\\(${identifier},${identifier}\\);const ${identifier}=\\{\\};)}$`;
 const behaviorsModuleRegexp =
-  /^\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{const [A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);const [A-Za-z_][A-Za-z0-9]*=\{\};}$/;
+  new RegExp(behaviorsModulePattern, "m");
+
 function isBehaviorsModule(moduleText) {
   return moduleText.match(behaviorsModuleRegexp) != null;
 }
 
-const gameSingletonModuleRegexp =
-  /\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\)=>\{(const|let|var) (?:[A-Za-z_][A-Za-z0-9]*=\{'[^']*':(?:function)?\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\).+?\},)?[A-Za-z_][A-Za-z0-9]*=\{\};[A-Za-z_][A-Za-z0-9]*\['[^']*'\]=\(\)=>[A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,[A-Za-z_][A-Za-z0-9]*\);(?:const|let|var)? [A-Za-z_][A-Za-z0-9]*=new\([A-Za-z_][A-Za-z0-9]*(?:\['[^']*'\]\([A-Za-z_][A-Za-z0-9]*,?|\()0x[0-9A-Fa-f]+\)\)\['[^']*'\]\(\);\}/;
+// 71304:(e,_,t)=>{t.d(_,{L:()=>i});const i=new(t(94291).Z)}
+const gameSingletonModulePattern = `\\(${identifier},${identifier},(?<importer>${identifier})\\)=>\\{`
+ + `(?:\\k<importer>\\.${identifier}\\(.+\\);)?` // newest
+ + `${declIntroducer}(?:${identifier}=\\{'[^']*':(?:function)?\\(${identifier},${identifier}\\).+?\\},)?`
+ + `${identifier}=`
+ + `(?:`
+ + `\\{\\};${identifier}\\['[^']*'\\]=\\(\\)=>${identifier},${identifier}\\['[^']*'\\]\\(${identifier},${identifier}\\);(?:${declIntroducer})?\\s*${identifier}=new\\(${identifier}(?:\\['[^']*'\\]\\(${identifier},?|\\()0x[0-9A-Fa-f]+\\)\\)\\['[^']*'\\]\\(\\);`
+ + `|new\\(\\k<importer>\\(${number}\\)\\.${identifier}\\)` // newest
+ + `)`
+ + `\\}`;
+
+const gameSingletonModuleRegexp = new RegExp(
+  gameSingletonModulePattern,
+  "m"
+);
 
 function isGameSingletonModule(moduleText) {
   return moduleText.match(gameSingletonModuleRegexp) != null;
@@ -79,7 +101,7 @@ async function main() {
       JSON.stringify({
         indexFileHash,
         foundModules,
-      }),
+      })
     );
   }
 
@@ -89,7 +111,7 @@ async function main() {
 
   readmeTemplate = readmeTemplate.replaceAll(
     "/* __mainScriptContent__ */",
-    scriptTemplate,
+    scriptTemplate
   );
 
   for (const [name, value] of Object.entries(foundModules)) {
@@ -103,6 +125,24 @@ async function main() {
   // Write the final README.md to the current directory
   await fs.writeFile("./README.md", readmeTemplate);
 }
+
+// 71304:(e,_,t)=>{t.d(_,{L:()=>i});const i=new(t(94291).Z)}
+// 15229:(e,t,i)=>{i.d(t,{d:()=>r});var o=i(12723),s=i(80075)
+const importCallPattern = (fnName) => `${fnName}\\((${number})\\)`;
+const importRhs = (fnName) =>
+  `(?:${importCallPattern(fnName)}|\\(${importCallPattern(
+    fnName
+  )}(?:,${importCallPattern(fnName)})*\\))`;
+const individualImportPattern = (fnName) =>
+  `${identifier}=${importRhs(fnName)}`;
+const importListPattern = (fnName) =>
+  `var ${individualImportPattern(fnName)}(?:,${individualImportPattern(
+    fnName
+  )})*;`;
+
+const modulePattern = `(?<moduleId>${number}):\\((?<param1>${identifier}),(?<param2>${identifier}),(?<param3>${identifier})\\)=>\\s*(${balancedBracesPattern(
+  30
+)})`;
 
 main().catch(console.error);
 async function findFoundModules(indexHtml, baseUrl, foundModules) {
@@ -119,40 +159,61 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
 
   const mainFileName = jsFiles.find((file) => file.startsWith("main."));
 
+  const moduleRegex = new RegExp(modulePattern, "g");
+
   const mainFileFunctions = jsFileContents[mainFileName].matchAll(
-    `function ([A-Za-z_][A-Za-z0-9]*)\\([A-Za-z_][A-Za-z0-9]*\\)${balancedBracesPattern(15)}`,
+    `function ([A-Za-z_][A-Za-z0-9]*)\\([A-Za-z_][A-Za-z0-9]*\\)${balancedBracesPattern(
+      15
+    )}`
   );
 
   // Extract module IDs from all JS files, uniq sorted
   const moduleIdSet = new Set();
   let firstFoundImport = null;
 
+  const moduleMap = {};
   for (const fileName of jsFiles) {
     const content = jsFileContents[fileName];
     // grep -Po '(?<=_0x[A-Za-z0-9]{6}\[\'[^\']{1,10}\'\]\(_0x[A-Za-z0-9]{6},)0x[A-Za-z0-9]{2,6}(?=\))'
     // => lookbehind for _0xXXXXXX['...'](_0xXXXXXX, then a hex id like 0xXXXXXX
-    const regex =
-      /(?:var |,)_0x[A-Za-z0-9]{6}=(?:(_0x[A-Za-z0-9]{6})(?:\(|\['[^']{1,10}'\]\((_0x[A-Za-z0-9]{6}),))(0x[A-Za-z0-9]{2,6})(?=\))/g;
-    for (const m of content.matchAll(regex)) {
-      const moduleId = m[3];
-      const importer = m[2] ?? m[1];
-      if (
-        firstFoundImport === null &&
-        !m[0].includes('"') &&
-        !m[0].includes("'") &&
-        importer
-      ) {
-        const [lineNumber, columnNumber] = getLineAndColFromIndex(
-          content,
-          m.index,
-        );
 
-        firstFoundImport = {
-          importer,
-          offset: `${fileName}:${lineNumber}:${columnNumber}`,
-        };
-      }
+    // const importRegex =
+    //   /(?:var |,)_0x[A-Za-z0-9]{6}=(?:(_0x[A-Za-z0-9]{6})(?:\(|\['[^']{1,10}'\]\((_0x[A-Za-z0-9]{6}),))(0x[A-Za-z0-9]{2,6})(?=\))/g;
+    for (const module of content.matchAll(moduleRegex)) {
+      const moduleId = module.groups.moduleId;
+      const importer = module.groups.param3;
+      moduleMap[moduleId] = module[0];
       moduleIdSet.add(moduleId);
+
+      const importCallRegexp = new RegExp(
+        importCallPattern(importer),
+        "g"
+      );
+
+      for (const m of module[0].matchAll(
+        new RegExp(importListPattern(importer), "g")
+      )) {
+        for (const im of m[0].matchAll(importCallRegexp)) {
+          const moduleId = m[1];
+          if (
+            firstFoundImport === null &&
+            !m[0].includes('"') &&
+            !m[0].includes("'") &&
+            importer
+          ) {
+            const [lineNumber, columnNumber] = getLineAndColFromIndex(
+              content,
+              m.index
+            );
+
+            firstFoundImport = {
+              importer,
+              offset: `${fileName}:${lineNumber}:${columnNumber}`,
+            };
+          }
+          moduleIdSet.add(moduleId);
+        }
+      }
     }
   }
   const moduleIds = [...moduleIdSet].sort();
@@ -168,7 +229,6 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
   // For each module id, find matching object literal in js files
   // pattern: (?<=(?:$module_id|$dec):)\([A-Za-z_][A-Za-z0-9_]*,[A-Za-z_][A-Za-z0-9_]*,[A-Za-z_][A-Za-z0-9_]*\)=>(\{(?:[^{}]|(?1))*\})
   // We replace printf '%d' "$module_id" => decimal of hex id
-  const moduleMap = {};
 
   let count = 0;
   for (const moduleId of moduleIds) {
@@ -177,14 +237,17 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
       console.log(`Checking module ${count}/${moduleIds.length} (${moduleId})`);
     }
     const dec = Number(moduleId).toString(10);
-    const lookbehind = `(?:${moduleId}|${dec}):`;
+    const hex = "0x" + Number(moduleId).toString(16);
+    const lookbehind = `(?:${hex}|${dec}):`;
     // The tricky pattern to match arrow function with 3 params and returning an object literal
     // We'll use a simpler approximate regex for JS:
     // e.g. look for `${moduleId}:([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*)=>({ ... })`
     // We capture from => to matching braces using a balancing approach is tough in JS regex; approximate with a lazy match.
     const pattern = new RegExp(
-      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(30)})`,
-      "m",
+      `(?<=${lookbehind})\\([a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*,[a-zA-Z_][a-zA-Z0-9_]*\\)=>\\s*(${balancedBracesPattern(
+        30
+      )})`,
+      "m"
     );
 
     for (const [fileName, content] of Object.entries(jsFileContents)) {
@@ -206,7 +269,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
         Object.keys(wantModules).every((x) => foundModules[x] !== undefined)
       ) {
         console.log(
-          `Found all required modules: ${Object.keys(wantModules).join(", ")}`,
+          `Found all required modules: ${Object.keys(wantModules).join(", ")}`
         );
         return;
       }
@@ -217,7 +280,7 @@ async function findFoundModules(indexHtml, baseUrl, foundModules) {
     console.warn(
       `Not all required modules found: ${Object.keys(wantModules)
         .filter((x) => foundModules[x] === undefined)
-        .join(", ")}`,
+        .join(", ")}`
     );
     process.exit(1);
   }
