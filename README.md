@@ -31,7 +31,7 @@ Note: Every time you are told to follow this part, it means you MUST start the g
 
    _The game should fully load. If the game is black after this point, that means that you already have a breakpoint set up. If "Load the cheat" doesn't work, you can try troubleshooting and if that doesn't work, submit a GitHub issue._
 1. Make sure the developer tools are focused, and press **Ctrl+Shift+P** and type in `Disable JavaScript source maps` and press enter to disable source maps, this is required because source maps interfere with the method of injecting the cheat. If it doesn't show up, that means source maps are already disabled so don't worry.
-2. Press **Ctrl+P** and paste `game.g.e73e1d5dfe97692d226a.js:1:99491` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
+2. Press **Ctrl+P** and paste `game.g.ef694e48455bcd0e6e08.js:1:102865` then press enter, it should take you to a specific line in the code and highlight it orange so it's easy for you to find the position of the text cursor.
 3. Set a breakpoint on that line by clicking the left part of the sidebar in on the same line as the current text cursor position.
 4. Exit the game.
 
@@ -283,7 +283,7 @@ const fmvImport =
   (() => {
     let fmvImport = undefined;
     try {
-      fmvImport = _0x8485eb;
+      fmvImport = _0xf0e56d;
     } catch (e) {}
     return fmvImport;
   })() || window.cheat?.fmvImport;
